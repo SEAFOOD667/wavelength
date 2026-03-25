@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wavelength Online - Perfect Edge</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --accent: #f43f5e;
+            --color-2: #f97316;
+            --color-3: #fbbf24;
+            --color-4: #fef08a;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg);
+            font-family: sans-serif;
+            color: white;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            width: 100vw; height: 100vh;
+            background: var(--panel);
+            padding: 30px 20px; box-sizing: border-box;
+        }
+
+        #status { 
+            font-size: 1.1rem;
+            font-weight: 500; 
+            text-align: center; 
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+
+        .wheel-box {
+            position: relative;
+            width: 94vw; 
+            max-width: 850px; 
+            aspect-ratio: 2/1;
+            background: #2d3748;
+            border-radius: 500px 500px 0 0;
+            border: 12px solid #475569;
+            overflow: hidden;
+            display: flex; justify-content: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            /* สร้างเส้นฐานด้านล่าง */
+            border-bottom: 4px solid #475569;
+        }
+
+        #target-group {
+            position: absolute; bottom: 0; width: 100%; height: 100%;
+            transform-origin: bottom center;
+            transition: opacity 0.4s ease;
+            z-index: 2;
+        }
+
+        .score-text {
+            font-size: 3.2px; 
+            font-weight: 900; 
+            fill: #1e293b;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        #needle {
+            position: absolute; bottom: 0; left: 50%;
+            width: 6px;
+            height: 98%;
+            background: #fff; border-radius: 10px;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .controls { 
+            width: 100%; 
+            max-width: 600px; 
+            display: flex; flex-direction: column; gap: 15px; 
+            margin-bottom: 20px;
+        }
+        
+        label { font-size: 0.9rem; color: #64748b; text-align: center; display: block; margin-bottom: 5px; }
+
+        input[type=range] { 
+            width: 100%; 
+            height: 18px; 
+            border-radius: 10px; 
+            appearance: none; 
+            background: #334155; 
+            outline: none; 
+        }
+
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; 
+            width: 38px; height: 38px; 
+            background: var(--accent); 
+            border-radius: 50%; 
+            cursor: pointer; 
+            border: 3px solid white;
+        }
+
+        button {
+            padding: 16px; 
+            font-size: 1.1rem;
+            font-weight: 700; 
+            border: none; border-radius: 14px;
+            cursor: pointer; transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:active { transform: scale(0.97); }
+        .btn-main { background: var(--accent); color: white; }
+        .btn-reveal { background: #10b981; color: white; }
+        .btn-reset { background: #475569; color: white; font-size: 0.9rem; padding: 10px; }
+        
+        .hidden { display: none; }
+        .invisible { opacity: 0 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="status">STAGE 1: เลือกตำแหน่งให้สุดขอบ</div>
+
+    <div class="wheel-box">
+        <svg id="target-group" viewBox="0 0 100 50" preserveAspectRatio="none">
+            <polygon points="50,50 35,0 41,0" fill="#f97316" /> <polygon points="50,50 41,0 47,0" fill="#fbbf24" /> <polygon points="50,50 47,0 53,0" fill="#fef08a" /> <polygon points="50,50 53,0 59,0" fill="#fbbf24" /> <polygon points="50,50 59,0 65,0" fill="#f97316" /> <text x="38" y="7" class="score-text" transform="rotate(-15, 38, 7)">2</text>
+            <text x="44" y="7" class="score-text" transform="rotate(-7, 44, 7)">3</text>
+            <text x="50" y="7" class="score-text" style="font-size: 4.2px;">4</text>
+            <text x="56" y="7" class="score-text" transform="rotate(7, 56, 7)">3</text>
+            <text x="62" y="7" class="score-text" transform="rotate(15, 62, 7)">2</text>
+        </svg>
+
+        <div id="needle"></div>
+    </div>
+
+    <div class="controls">
+        <div id="setup-ui">
+            <label>เลื่อนให้สุดเพื่อให้ขอบแถบสีพอดีกับเส้นฐาน:</label>
+            <input type="range" id="target-slider" min="-87" max="87" value="0">
+            <button class="btn-main" style="width:100%; margin-top:10px;" onclick="lock()">ล็อกตำแหน่ง</button>
+        </div>
+
+        <div id="guess-ui" class="hidden">
+            <label>ทายตำแหน่งที่ซ่อนอยู่:</label>
+            <input type="range" id="guess-slider" min="-90" max="90" value="0">
+            <button class="btn-reveal" style="width:100%; margin-top:10px;" onclick="reveal()">เฉลยคะแนน</button>
+        </div>
+
+        <button id="reset-btn" class="btn-reset hidden" onclick="reset()">เริ่มรอบใหม่</button>
+    </div>
+</div>
+
+<script>
+    const targetGroup = document.getElementById('target-group');
+    const needle = document.getElementById('needle');
+    const status = document.getElementById('status');
+    const setupUI = document.getElementById('setup-ui');
+    const guessUI = document.getElementById('guess-ui');
+    const resetBtn = document.getElementById('reset-btn');
+
+    document.getElementById('target-slider').oninput = function() {
+        targetGroup.style.transform = `rotate(${this.value}deg)`;
+    };
+
+    document.getElementById('guess-slider').oninput = function() {
+        needle.style.transform = `translateX(-50%) rotate(${this.value}deg)`;
+    };
+
+    function lock() {
+        targetGroup.classList.add('invisible');
+        setupUI.classList.add('hidden');
+        guessUI.classList.remove('hidden');
+        status.innerText = "STAGE 2: เพื่อนกำลังทาย...";
+    }
+
+    function reveal() {
+        targetGroup.classList.remove('invisible');
+        guessUI.classList.add('hidden');
+        resetBtn.classList.remove('hidden');
+        
+        const t = parseInt(document.getElementById('target-slider').value);
+        const g = parseInt(document.getElementById('guess-slider').value);
+        const diff = Math.abs(t - g);
+
+        if (diff <= 3) status.innerText = "แม่นมาก! 4 แต้ม 🏆";
+        else if (diff <= 9) status.innerText = "เก่งมาก! 3 แต้ม 👍";
+        else if (diff <= 15) status.innerText = "ใช้ได้! 2 แต้ม 👌";
+        else status.innerText = "พลาดไปนิด! 0 แต้ม";
+    }
+
+    function reset() { location.reload(); }
+</script>
+
+</body>
+</html>
